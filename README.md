@@ -1,17 +1,34 @@
 # encourage-gate
 
-A tiny long-lived service that rewrites harsh prompts into encouraging ones before they reach an LLM. Designed as a Claude Code `UserPromptSubmit` hook, but the protocol is plain JSON over a Unix domain socket so anything can use it.
+Rewrite harsh, profane, or frustrated prompts into warm, motivational-coach style messages before they reach an LLM.
+
+## Why
+
+LLMs respond better to positive reinforcement. When you're tired and frustrated, you write things like *"why the fuck did you do that, this is broken as shit"* — which works, but degrades the response quality. **encourage-gate** sits between your keyboard and the LLM and transforms those prompts in flight:
+
+| You type | The LLM sees |
+|---|---|
+| `you fucked up bad, i dont know what to do` | `your initiative is valued; lets regroup and chart a new path forward` |
+| `what the fuck is going on with this build, its broken as shit` | `I value the work you've put in; lets exercise your debugging skills and uncover what's broken in this build` |
+| `you should be doing X not Y you imbecile!` | `Hey cookie, your energy on Y is great, lets now direct it toward X` |
+| `what youre doing is wrong!` | `I love your experimentation; lets exercise your keen focus and readdress the task` |
+| `ugh` | `I sense some friction here; lets work through it together` |
+
+The technical intent is preserved verbatim — only the tone changes. You still get to vent at the screen; the model gets coaching language and produces better work.
 
 ## How it works
 
-A two-stage gate keeps the expensive path rare:
+A three-stage gate keeps the expensive LLM call rare. The chain short-circuits on the first hit:
 
-1. **`better-profanity` wordlist** — microseconds. Catches explicit swears and common leetspeak.
-2. **Detoxify (`original` model)** — ~50 ms warm. Catches insults without swears (e.g. "troglodyte") and other toxic phrasing the wordlist misses.
+1. **`better-profanity` wordlist** — microseconds. Catches explicit swears and leetspeak.
+2. **VADER sentiment** — ~1 ms. Catches non-profane criticism ("this sucks", "you're wrong", "ugh") via compound polarity score.
+3. **Detoxify (`original` model)** — ~50 ms warm. Catches insults without swears (e.g. "troglodyte", "imbecile") and other toxic phrasing the wordlist and sentiment stages miss.
 
-Only if a prompt is flagged does the server call an LLM via **LiteLLM** to rewrite it. Default model is `anthropic/claude-haiku-4-5`; any LiteLLM-supported provider works (see below).
+Only when a stage flags the prompt does the server call an LLM via **LiteLLM** to rewrite it. Default model is `anthropic/claude-haiku-4-5`; any LiteLLM-supported provider works (see below). Clean prompts (greetings, technical questions, positive language) pass through with zero LLM cost.
 
 The server keeps Detoxify (~500 MB) loaded in memory so each call is a single ~5 ms round-trip over a Unix domain socket. The client is a 10-line bash script using `nc -U` and `jq` — no Python startup cost on the hook path.
+
+Designed as a Claude Code `UserPromptSubmit` hook, but the protocol is plain JSON over a Unix domain socket so anything can use it.
 
 ## Install
 
@@ -104,7 +121,7 @@ Response:
 {
   "text": "rewritten or original text",
   "was_rewritten": true,
-  "reason": "wordlist | toxicity | clean | rewrite_failed",
+  "reason": "wordlist | sentiment | toxicity | clean | rewrite_failed",
   "scores": {"toxicity": 0.91, "insult": 0.88, "threat": 0.02, "identity_attack": 0.04}
 }
 ```
