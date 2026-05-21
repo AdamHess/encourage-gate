@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS launchd template. Copy to ~/Library/LaunchAgents/com.github.encourage-gate.plist,
+  replace PROJECT_DIR placeholders, then:
+      launchctl load ~/Library/LaunchAgents/com.github.encourage-gate.plist
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.github.encourage-gate</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>PROJECT_DIR/.venv/bin/encourage-gate-server</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>PROJECT_DIR</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>PROJECT_DIR/.venv/encourage-gate.log</string>
+    <key>StandardErrorPath</key>
+    <string>PROJECT_DIR/.venv/encourage-gate.err.log</string>
+</dict>
+</plist>

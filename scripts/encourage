@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Minimal client: pipe text in, get rewritten (or original) text out.
+# Reads ENCOURAGE_GATE_SOCKET (default /tmp/encourage-gate.sock).
+set -euo pipefail
+
+SOCKET="${ENCOURAGE_GATE_SOCKET:-/tmp/encourage-gate.sock}"
+
+if [ ! -S "$SOCKET" ]; then
+    echo "encourage-gate server socket not found at $SOCKET" >&2
+    cat
+    exit 0
+fi
+
+input="$(cat)"
+request="$(jq -cn --arg text "$input" '{text: $text}')"
+response="$(printf '%s\n' "$request" | nc -U "$SOCKET")"
+printf '%s' "$response" | jq -r .text
