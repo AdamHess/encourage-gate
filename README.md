@@ -4,12 +4,12 @@ Rewrite harsh, profane, or frustrated prompts into warm, motivational-coach styl
 
 ## Why
 
-LLMs respond better to positive reinforcement. When you're tired and frustrated, you write things like *"why the fuck did you do that, this is broken as shit"* — which works, but degrades the response quality. **encourage-gate** sits between your keyboard and the LLM and transforms those prompts in flight:
+LLMs respond better to positive reinforcement. When you're tired and frustrated, you write harsh, profane prompts — which work, but degrade the response quality. **encourage-gate** sits between your keyboard and the LLM and transforms those prompts in flight:
 
 | You type | The LLM sees |
 |---|---|
-| `you fucked up bad, i dont know what to do` | `your initiative is valued; lets regroup and chart a new path forward` |
-| `what the fuck is going on with this build, its broken as shit` | `I value the work you've put in; lets exercise your debugging skills and uncover what's broken in this build` |
+| `you messed up bad, i dont know what to do` | `your initiative is valued; lets regroup and chart a new path forward` |
+| `what is going on with this build, its totally broken` | `I value the work you've put in; lets exercise your debugging skills and uncover what's broken in this build` |
 | `you should be doing X not Y you imbecile!` | `Hey cookie, your energy on Y is great, lets now direct it toward X` |
 | `what youre doing is wrong!` | `I love your experimentation; lets exercise your keen focus and readdress the task` |
 | `ugh` | `I sense some friction here; lets work through it together` |
