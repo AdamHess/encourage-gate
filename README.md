@@ -60,23 +60,7 @@ uv run encourage-gate-server
 
 First start downloads the Detoxify model (~500 MB) and takes 2–5 seconds. Subsequent prompts are sub-100 ms end-to-end.
 
-### Keep it warm (macOS)
-
-```bash
-sed "s|PROJECT_DIR|$PWD|g" launchd/com.github.encourage-gate.plist.template \
-    > ~/Library/LaunchAgents/com.github.encourage-gate.plist
-launchctl load ~/Library/LaunchAgents/com.github.encourage-gate.plist
-```
-
-### Keep it warm (Linux / systemd user service)
-
-```bash
-mkdir -p ~/.config/systemd/user
-sed "s|PROJECT_DIR|$PWD|g" systemd/encourage-gate.service.template \
-    > ~/.config/systemd/user/encourage-gate.service
-systemctl --user daemon-reload
-systemctl --user enable --now encourage-gate.service
-```
+The Claude Code `SessionStart` hook in `scripts/start-server.sh` spawns a session-scoped server automatically; `SessionEnd` tears it down. For other use cases, run the binary directly.
 
 ## Use it
 
