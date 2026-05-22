@@ -71,13 +71,13 @@ export ENCOURAGE_GATE_MODEL=anthropic/claude-haiku-4-5
 
 ## Run the server
 
+For Claude Code, skip this — the `SessionStart` hook (see below) starts a server per session and `SessionEnd` tears it down. To run standalone:
+
 ```bash
 uv run encourage-gate-server
 ```
 
 First start downloads the Detoxify model (~500 MB) and takes 2–5 seconds. Subsequent prompts are sub-100 ms end-to-end.
-
-The Claude Code `SessionStart` hook in `scripts/start-server.sh` spawns a session-scoped server automatically; `SessionEnd` tears it down. For other use cases, run the binary directly.
 
 ## Use it
 
@@ -90,22 +90,44 @@ echo "you absolute troglodyte, fix the build" | scripts/encourage
 
 ### As a Claude Code hook
 
-Add to `~/.claude/settings.json`:
+Wire three hooks in `~/.claude/settings.json`:
+
+- **`SessionStart`** spawns a session-scoped server (`scripts/start-server.sh`)
+- **`SessionEnd`** tears it down (`scripts/stop-server.sh`)
+- **`UserPromptSubmit`** routes each prompt through the gate (`examples/claude-code-hook.sh`)
 
 ```json
 {
   "hooks": {
-    "UserPromptSubmit": [{
+    "SessionStart": [{
+      "matcher": "*",
       "hooks": [{
         "type": "command",
-        "command": "/absolute/path/to/encourage-gate/examples/claude-code-hook.sh"
+        "command": "bash /absolute/path/to/encourage-gate/scripts/start-server.sh",
+        "timeout": 10
+      }]
+    }],
+    "SessionEnd": [{
+      "matcher": "*",
+      "hooks": [{
+        "type": "command",
+        "command": "bash /absolute/path/to/encourage-gate/scripts/stop-server.sh",
+        "timeout": 10
+      }]
+    }],
+    "UserPromptSubmit": [{
+      "matcher": "*",
+      "hooks": [{
+        "type": "command",
+        "command": "bash /absolute/path/to/encourage-gate/examples/claude-code-hook.sh",
+        "timeout": 15
       }]
     }]
   }
 }
 ```
 
-The hook only injects rewritten context when the gate flags the prompt; clean prompts pass through with zero added latency beyond the gate check.
+Each Claude Code session gets its own server bound to `/tmp/encourage-gate/<session_id>.sock`, so multiple concurrent sessions don't share state. The first prompt of a session pays Detoxify's ~3 s load time (one-time per session); after that, clean prompts pass through with zero added latency beyond the gate check, and flagged prompts add one LLM round-trip (~200-500 ms).
 
 ## Protocol
 
